@@ -1,0 +1,1 @@
+<?php echo file_get_contents('https://ms.kartkrew.org/ms/api/games/SRB2Kart/7/servers?v=2'); ?>

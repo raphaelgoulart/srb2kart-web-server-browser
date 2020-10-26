@@ -1,0 +1,175 @@
+<style>
+    body{
+        background-color: #111;
+        color: #eee;
+        text-align: center
+    }
+    table{
+        width: 100%;
+        
+    }
+    .dropdown, .refresh{
+        cursor: pointer;
+    }
+    .extra{
+        width:100%;
+        color: #ccc
+    }
+    .extra div{
+        vertical-align: top;
+        display: inline-block;
+        height: 100%
+    }
+    a{
+        vertical-align: center;
+        color: inherit
+    }
+</style>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<div id="a">Loading...</div>
+<table id="table" style="display:none">
+    <tr>
+        <th></th>
+        <th>IP Address</th>
+        <th>Name</th>
+        <th>Players</th>
+        <th>Gametype</th>
+        <th>Ping</th>
+        <th>Refresh</th>
+    </tr>
+</table>
+<script>
+    var sv_array = [];
+    $.ajax("ms.php").done(function(data){
+        var servers = data.split("\n");
+        var table = $("#table")
+        servers.forEach(function(element,index){
+            var server = element.split(" ")
+            if(server.length > 1){
+                var address = server[0]
+                if(server[1]!='5029') address = address + ":" + server[1]
+                sv_array[index] = server
+                var row = $("<tr>").attr("id","row_" + index)
+                var dropdown = $("<span>").attr('id','drop_'+index).addClass(['material-icons','dropdown']).text('arrow_drop_down').attr('data-open','0').hide()
+                var refresh = $("<span>").addClass(['material-icons','refresh']).text('cached')
+                row.append(
+                    $("<td>").click(function(){openExtraDetails(index)}).append(dropdown),
+                    $("<td>").text(address),
+                    $("<td>").attr("id","name_" + index).text("Loading..."),
+                    // $("<td>").text(decodeURIComponent(server[2])),
+                    $("<td>").attr("id","players_" + index).text("? / ?"),
+                    $("<td>").attr("id","gametype_" + index).text("Unknown"),
+                    $("<td>").attr("id","ping_" + index).text("?"),
+                    $("<td>").click(function(){refreshServer(index)}).append(refresh)
+                )
+                table.append(row)
+                table.append($("<tr>").append($("<td>").attr('colspan',7).attr("id","extra_" + index).addClass('extra').hide()))
+                getServerInfo(index)
+            }
+        })
+        $("#a").hide(200)
+        $("#table").show(200)
+    })
+
+function getServerInfo(index){
+    var server = sv_array[index]
+    $.get('api.php',{'ip':server[0],'port':server[1]},function(data,status,xhr){
+        $("#name_"+index).html(data['servername'])
+        $("#players_"+index).text(data['players']['count'] + " / " + data['players']['max'])
+        $("#gametype_"+index).text(data['gametype'])
+        $("#ping_"+index).text(data['ping'] + " ms")
+
+        var extra = $("<div>").css('width','100%')
+        $("#extra_"+index).append(extra)
+
+        var td1 = $("<div>").css('width', '50%')
+        var td2 = $("<div>").css('width','50%')
+        td1.append($("<h2>").text("Server info"))
+        if(data['dedicated']) td1.append($("<p>").text("Dedicated server"))
+        if(data['cheats']) td1.append($("<p>").text("Cheats are enabled"))
+        if(data['password-protected']) td1.append($("<p>").text("Is password protected"))
+        td1.append($("<p>").append(
+            $("<b>").text("Kartspeed: "),
+            $("<span>").text(data['kartspeed'])
+        ))
+        td1.append($("<p>").append(
+            $("<b>").text("Map: "),
+            $("<span>").text(data['level']['title'])
+        ))
+
+        var h_players = $("<h2>").text("Players")
+        data['mods'] ? td1.append(h_players) : td2.append(h_players)
+        if(data['players']['count']==0){
+            var p_noplayers = $("<p>").append($("<i>").text("No players are currently playing :("))
+            data['mods'] ? td1.append(p_noplayers) : td2.append(p_noplayers)
+        }else{
+            data['players']['list'].sort(function(a,b){return a['score'] < b['score']})
+            data['players']['list'].forEach(function(element,index){
+                var span = $("<span>")
+                if(element['team']=='Spectator') span.append($("<i>").text(element['name']))
+                else span.text(element['name'])
+                var p = $("<p>").css('width','100%').css('text-align','left').append(span)
+                p.append($("<span>").css('float','right').html(element['score'] + '&emsp;'))
+                data['mods'] ? td1.append(p) : td2.append(p)
+            })
+        }
+
+        if(data['mods']){
+            td2.append($("<h2>").text("Addons"))
+            data['addons'].forEach(function(element,index){
+                var p = $("<p>").css('width','100%').css('text-align','left').text(element['name'])
+                if(element['name'] != 'bonuschars.kart' && data['httpsource'] != "" && data['httpsource'] != "/"){
+                    if(data['httpsource'].slice(-1)!='/') data['httpsource'] = data['httpsource'] + '/'
+                    p.append($("<a>").attr('href',data['httpsource'] + element['name']).css('float','right').append(
+                        $("<span>").addClass('material-icons').text('save')
+                    ))
+                }
+                td2.append(p)
+            })
+        }
+
+        extra.append(td1,td2)
+        $("#drop_"+index).show()
+    })
+}
+
+function openExtraDetails(index){
+    dropdown = $("#drop_"+index)
+    if(dropdown.attr('data-open')=='0'){
+        dropdown.attr('data-open','1')
+        dropdown.text('arrow_drop_up')
+        $("#extra_"+index).show(200)
+    }else{
+        dropdown.text('arrow_drop_down')
+        dropdown.attr('data-open','0')
+        $("#extra_"+index).hide(200)
+    }
+}
+
+function refreshServer(index){
+    dropdown = $("#drop_"+index)
+    dropdown.text('arrow_drop_down')
+    dropdown.attr('data-open','0')
+    dropdown.hide()
+    $("#extra_"+index).hide(200)
+    $("#name_"+index).text("Loading...")
+    $("#players_"+index).text("? / ?")
+    $("#gametype_"+index).text("Unknown")
+    $("#ping_"+index).text("?")
+    $("#extra_"+index).html('')
+    getServerInfo(index)
+}
+
+String.prototype.toHHMMSS = function () {
+    var sec_num = parseInt(this, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+}
+</script>
