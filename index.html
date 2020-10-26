@@ -2,11 +2,10 @@
     body{
         background-color: #111;
         color: #eee;
-        text-align: center
     }
     table{
         width: 100%;
-        
+        text-align: center;
     }
     .dropdown, .refresh{
         cursor: pointer;
@@ -24,6 +23,9 @@
         vertical-align: center;
         color: inherit
     }
+    td{
+        vertical-align: center;
+    }
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -35,7 +37,7 @@
         <th>Name</th>
         <th>Players</th>
         <th>Gametype</th>
-        <th>Ping</th>
+        <!--<th>Ping</th>-->
         <th>Refresh</th>
     </tr>
 </table>
@@ -60,7 +62,7 @@
                     // $("<td>").text(decodeURIComponent(server[2])),
                     $("<td>").attr("id","players_" + index).text("? / ?"),
                     $("<td>").attr("id","gametype_" + index).text("Unknown"),
-                    $("<td>").attr("id","ping_" + index).text("?"),
+                    //$("<td>").attr("id","ping_" + index).text("?"),
                     $("<td>").click(function(){refreshServer(index)}).append(refresh)
                 )
                 table.append(row)
@@ -74,11 +76,11 @@
 
 function getServerInfo(index){
     var server = sv_array[index]
-    $.get('api.php',{'ip':server[0],'port':server[1]},function(data,status,xhr){
+    $.get('api.php',{'ip':server[0],'port':server[1]}).done(function(data,status,xhr){
         $("#name_"+index).html(data['servername'])
         $("#players_"+index).text(data['players']['count'] + " / " + data['players']['max'])
         $("#gametype_"+index).text(data['gametype'])
-        $("#ping_"+index).text(data['ping'] + " ms")
+        //$("#ping_"+index).text(data['ping'] + " ms")
 
         var extra = $("<div>").css('width','100%')
         $("#extra_"+index).append(extra)
@@ -86,6 +88,10 @@ function getServerInfo(index){
         var td1 = $("<div>").css('width', '50%')
         var td2 = $("<div>").css('width','50%')
         td1.append($("<h2>").text("Server info"))
+        if(server[2]) td1.append($("<p>").append(
+            $("<b>").text("Contact: "),
+            $("<span>").text(decodeURIComponent(server[2]))
+        ))
         if(data['dedicated']) td1.append($("<p>").text("Dedicated server"))
         if(data['cheats']) td1.append($("<p>").text("Cheats are enabled"))
         if(data['password-protected']) td1.append($("<p>").text("Is password protected"))
@@ -116,7 +122,8 @@ function getServerInfo(index){
         }
 
         if(data['mods']){
-            td2.append($("<h2>").text("Addons"))
+            td2.append($("<h2>").html("Addons"))
+            td2.append($("<small>").html("<b>Count: </b>" + data['addons'].length))
             data['addons'].forEach(function(element,index){
                 var p = $("<p>").css('width','100%').css('text-align','left').text(element['name'])
                 if(element['name'] != 'bonuschars.kart' && data['httpsource'] != "" && data['httpsource'] != "/"){
@@ -131,6 +138,11 @@ function getServerInfo(index){
 
         extra.append(td1,td2)
         $("#drop_"+index).show()
+    }).fail(function(xhr,status,error){
+        console.log(xhr)
+        var name = $("#name_"+index).html('')
+        name.append($("<span>").addClass('material-icons').css('font-size','1em').css('color','#ff3f3f').text('error'))
+        name.append($("<span>").html("&ensp;Unable to reach server"))
     })
 }
 
@@ -156,7 +168,7 @@ function refreshServer(index){
     $("#name_"+index).text("Loading...")
     $("#players_"+index).text("? / ?")
     $("#gametype_"+index).text("Unknown")
-    $("#ping_"+index).text("?")
+    //$("#ping_"+index).text("?")
     $("#extra_"+index).html('')
     getServerInfo(index)
 }
