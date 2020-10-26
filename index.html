@@ -34,6 +34,7 @@
     <tr>
         <th></th>
         <th>IP Address</th>
+        <th></th>
         <th>Name</th>
         <th>Players</th>
         <th>Gametype</th>
@@ -58,8 +59,8 @@
                 row.append(
                     $("<td>").click(function(){openExtraDetails(index)}).append(dropdown),
                     $("<td>").text(address),
+                    $("<td>").attr("id","flag_" + index),
                     $("<td>").attr("id","name_" + index).text("Loading..."),
-                    // $("<td>").text(decodeURIComponent(server[2])),
                     $("<td>").attr("id","players_" + index).text("? / ?"),
                     $("<td>").attr("id","gametype_" + index).text("Unknown"),
                     //$("<td>").attr("id","ping_" + index).text("?"),
@@ -68,6 +69,7 @@
                 table.append(row)
                 table.append($("<tr>").append($("<td>").attr('colspan',7).attr("id","extra_" + index).addClass('extra').hide()))
                 getServerInfo(index)
+                getServerFlag(index)
             }
         })
         $("#a").hide(200)
@@ -147,7 +149,7 @@ function getServerInfo(index){
 }
 
 function openExtraDetails(index){
-    dropdown = $("#drop_"+index)
+    var dropdown = $("#drop_"+index)
     if(dropdown.attr('data-open')=='0'){
         dropdown.attr('data-open','1')
         dropdown.text('arrow_drop_up')
@@ -160,7 +162,7 @@ function openExtraDetails(index){
 }
 
 function refreshServer(index){
-    dropdown = $("#drop_"+index)
+    var dropdown = $("#drop_"+index)
     dropdown.text('arrow_drop_down')
     dropdown.attr('data-open','0')
     dropdown.hide()
@@ -171,5 +173,17 @@ function refreshServer(index){
     //$("#ping_"+index).text("?")
     $("#extra_"+index).html('')
     getServerInfo(index)
+}
+
+// might be blocked by adblockers, but whatever
+function getServerFlag(index){
+    var ip = sv_array[index][0]
+    var flag = $("#flag_"+index)
+    $.getJSON('https://freegeoip.app/json/' + ip).done(function(data,status,xhr){
+        var flagchar = data['country_code'].toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0)+127397));
+        flag.text(flagchar)
+    }).fail(function(xhr,status,error){
+        console.log(xhr)
+    })
 }
 </script>
