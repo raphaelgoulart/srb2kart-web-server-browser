@@ -95,7 +95,7 @@ function getServerInfo(index){
         if(data['dedicated']) td1.append($("<p>").text("Dedicated server"))
         if(data['cheats']) td1.append($("<p>").text("Cheats are enabled"))
         if(data['password-protected']) td1.append($("<p>").text("Is password protected"))
-        td1.append($("<p>").append(
+        if(data['gametype']=="Race") td1.append($("<p>").append(
             $("<b>").text("Kartspeed: "),
             $("<span>").text(data['kartspeed'])
         ))
