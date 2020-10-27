@@ -1,0 +1,1 @@
+<?php echo file_get_contents('https://freegeoip.app/json/' . $_GET['ip']); ?>
