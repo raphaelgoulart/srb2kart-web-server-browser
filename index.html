@@ -1,11 +1,9 @@
+<link href="bootstrap.min.css" rel="stylesheet">
 <style>
     body{
-        background-color: #111;
-        color: #eee;
         text-align: center;
     }
     table{
-        width: 100%;
         text-align: center;
     }
     .dropdown, .refresh{
@@ -27,27 +25,51 @@
     td{
         vertical-align: center;
     }
+    .extra div div{
+        width: 50%;
+        padding: 0px 15px;
+    }
+    .extra div div table tr td p{
+        width: 100%;
+        text-align: left;
+        margin-bottom: 0px
+    }
+    .extra_tr, .extra_tr:hover{
+        background-color: #242424 !important;
+    }
+    .extra div div table tr:hover{
+        background-color: inherit !important; 
+    }
+    .extra div div table tr:nth-of-type(2n+1):hover{
+        background-color: #303030 !important; 
+    }
+    h2{
+        padding: 8px 0px;
+    }
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<div id="a">Loading...</div>
-<table id="table" style="display:none">
-    <tr>
-        <th></th>
-        <th>IP Address</th>
-        <th></th>
-        <th>Name</th>
-        <th>Players</th>
-        <th>Gametype</th>
-        <!--<th>Ping</th>-->
-        <th>Refresh</th>
-    </tr>
+<h1 id="a"><br />Loading...</h1>
+<table class="table table-hover table-striped" id="table" style="display:none">
+    <tbody id="tbody">
+        <tr>
+            <th></th>
+            <th>IP Address</th>
+            <th></th>
+            <th>Name</th>
+            <th>Players</th>
+            <th>Gametype</th>
+            <!--<th>Ping</th>-->
+            <th>Refresh</th>
+        </tr>
+    </tbody>
 </table>
+<small id="footer" style="display: none; padding-bottom: 8px; color: #ccc">Created by raphaelgoulart, based on existing work by James R. and GoldenTails</small>
 <script>
     var sv_array = [];
     $.ajax("ms.php").done(function(data){
         var servers = data.split("\n");
-        var table = $("#table")
+        var table = $("#tbody")
         servers.forEach(function(element,index){
             var server = element.split(" ")
             if(server.length > 1){
@@ -55,10 +77,10 @@
                 if(server[1]!='5029') address = address + ":" + server[1]
                 sv_array[index] = server
                 var row = $("<tr>").attr("id","row_" + index)
-                var dropdown = $("<span>").attr('id','drop_'+index).addClass(['material-icons','dropdown']).text('arrow_drop_down').attr('data-open','0').hide()
-                var refresh = $("<span>").addClass(['material-icons','refresh']).text('cached')
+                var dropdown = $("<a>").attr('href','javascript:void(0)').append($("<span>").attr('id','drop_'+index).addClass(['material-icons','dropdown']).text('arrow_drop_down').attr('data-open','0').hide().click(function(){openExtraDetails(index)}))
+                var refresh = $("<a>").attr('href','javascript:void(0)').append($("<span>").addClass(['material-icons','refresh']).text('cached'))
                 row.append(
-                    $("<td>").click(function(){openExtraDetails(index)}).append(dropdown),
+                    $("<td>").append(dropdown),
                     $("<td>").text(address),
                     $("<td>").attr("id","flag_" + index),
                     $("<td>").attr("id","name_" + index).text("Loading..."),
@@ -68,13 +90,14 @@
                     $("<td>").click(function(){refreshServer(index)}).append(refresh)
                 )
                 table.append(row)
-                table.append($("<tr>").append($("<td>").attr('colspan',7).attr("id","extra_" + index).addClass('extra').hide()))
+                table.append($("<tr>").addClass('extra_tr').append($("<td>").attr('colspan',7).attr("id","extra_" + index).addClass('extra').hide()))
                 getServerInfo(index)
                 getServerFlag(index)
             }
         })
         $("#a").hide(200)
         $("#table").show(200)
+        $("#footer").show(200)
     })
 
 function getServerInfo(index){
@@ -88,8 +111,8 @@ function getServerInfo(index){
         var extra = $("<div>").css('width','100%')
         $("#extra_"+index).append(extra)
 
-        var td1 = $("<div>").css('width', '50%')
-        var td2 = $("<div>").css('width','50%')
+        var td1 = $("<div>")
+        var td2 = $("<div>")
         td1.append($("<h2>").text("Server info"))
         if(server[2]) td1.append($("<p>").append(
             $("<b>").text("Contact: "),
@@ -114,19 +137,23 @@ function getServerInfo(index){
             data['mods'] ? td1.append(p_noplayers) : td2.append(p_noplayers)
         }else{
             data['players']['list'].sort(function(a,b){return a['score'] < b['score']})
+            var p_table = $("<table>").addClass("table")
             data['players']['list'].forEach(function(element,index){
                 var span = $("<span>")
                 if(element['team']=='Spectator') span.append($("<i>").text(element['name']))
                 else span.text(element['name'])
-                var p = $("<p>").css('width','100%').css('text-align','left').append(span)
-                p.append($("<span>").css('float','right').html(element['score'] + '&emsp;'))
-                data['mods'] ? td1.append(p) : td2.append(p)
+                var p = $("<p>").append(span)
+                p.append($("<span>").css('float','right').html(element['score'] + '&ensp;'))
+                p_table.append($("<tr>").append($("<td>").append(p)))
             })
+            data['mods'] ? td1.append(p_table) : td2.append(p_table)
         }
 
         if(data['mods']){
             td2.append($("<h2>").html("Addons"))
             td2.append($("<small>").html("<b>Count: </b>" + data['addons'].length))
+            var a_table = $("<table>").addClass("table").css('margin-top','15px')
+            var a_tbody = $("<tbody>")
             data['addons'].forEach(function(element,index){
                 var p = $("<p>").css('width','100%').css('text-align','left').text(element['name'])
                 if(element['name'] != 'bonuschars.kart' && data['httpsource'] != "" && data['httpsource'] != "/"){
@@ -135,8 +162,9 @@ function getServerInfo(index){
                         $("<span>").addClass('material-icons').text('save')
                     ))
                 }
-                td2.append(p)
+                a_tbody.append($("<tr>").append($("<td>").append(p)))
             })
+            td2.append(a_table.append(a_tbody))
         }
 
         extra.append(td1,td2)
@@ -144,7 +172,7 @@ function getServerInfo(index){
     }).fail(function(xhr,status,error){
         console.log(xhr)
         var name = $("#name_"+index).html('')
-        name.append($("<span>").addClass('material-icons').css('font-size','1em').css('color','#ff3f3f').text('error'))
+        name.append($("<span>").addClass('material-icons').css('font-size','.9375rem').css('color','#ff3f3f').text('error'))
         name.append($("<span>").html("&ensp;Unable to reach server"))
     })
 }
