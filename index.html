@@ -97,9 +97,10 @@
 </div>
 </body>
 <script>
+    var current_sort = 2;
     var sort_ip = false;
     var sort_name = false;
-    var sort_player = false;
+    var sort_player = true;
     var sort_gametype = false;
     //0 = off, 1 = asc, 2 = desc
 
@@ -206,6 +207,7 @@ function getServerInfo(index){
 
         extra.append(td1,td2)
         $("#drop_"+index).show()
+        sortTable(current_sort,false)
     }).fail(function(xhr,status,error){
         console.log(xhr)
         var name = $("#name_"+index).html('')
@@ -258,7 +260,8 @@ function getServerFlag(index){
     })
 }
 
-function sortTable(column){ //0 = ip; 1 = name; 2 = players; 3 = gametype
+function sortTable(column,change=true){ //0 = ip; 1 = name; 2 = players; 3 = gametype
+    current_sort = column
     var server_array = $(".server_tr").toArray()
     server_array.sort(function(a,b){
         if(column == 0){
@@ -278,7 +281,7 @@ function sortTable(column){ //0 = ip; 1 = name; 2 = players; 3 = gametype
         }
     })
     if(column == 0){
-        sort_ip = !sort_ip;
+        if(change) sort_ip = !sort_ip;
         sort_name = false;
         sort_player = false;
         sort_gametype = false;
@@ -287,7 +290,7 @@ function sortTable(column){ //0 = ip; 1 = name; 2 = players; 3 = gametype
         $("#order_0").text(sort_ip ? 'arrow_drop_up' : 'arrow_drop_down').show()
     }else if(column == 1){
         sort_ip = false;
-        sort_name = !sort_name;
+        if(change) sort_name = !sort_name;
         sort_player = false;
         sort_gametype = false;
         if(!sort_name) server_array = server_array.reverse()
@@ -296,7 +299,7 @@ function sortTable(column){ //0 = ip; 1 = name; 2 = players; 3 = gametype
     }else if(column == 2){
         sort_ip = false;
         sort_name = false;
-        sort_player = !sort_player;
+        if(change) sort_player = !sort_player;
         sort_gametype = false;
         if(!sort_player) server_array = server_array.reverse()
         $(".order").hide()
@@ -305,7 +308,7 @@ function sortTable(column){ //0 = ip; 1 = name; 2 = players; 3 = gametype
         sort_ip = false;
         sort_name = false;
         sort_player = false;
-        sort_gametype = !sort_gametype;
+        if(change) sort_gametype = !sort_gametype;
         if(!sort_gametype) server_array = server_array.reverse()
         $(".order").hide()
         $("#order_3").text(sort_gametype ? 'arrow_drop_up' : 'arrow_drop_down').show()
