@@ -249,11 +249,11 @@ function getServerFlag(index){
     var flag = $("#flag_"+index)
     $.getJSON('https://freegeoip.app/json/' + ip).done(function(data,status,xhr){
         var flagchar = data['country_code'].toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0)+127397));
-        flag.text(flagchar)
+        flag.attr('title',data['country_name']).text(flagchar)
     }).fail(function(xhr,status,error){
         $.getJSON('flag.php?ip=' + ip).done(function(data,status,xhr){ // now it isn't anymore :D but might reach ratelimit faster
             var flagchar = data['country_code'].toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0)+127397));
-            flag.text(flagchar)
+            flag.attr('title',data['country_name']).text(flagchar)
         }).fail(function(xhr,status,error){
             console.log(xhr)
         })
