@@ -97,12 +97,11 @@
 </div>
 </body>
 <script>
-    var current_sort = 2;
+    var current_sort = 2; //0 = ip; 1 = name; 2 = players; 3 = gametype
     var sort_ip = false;
     var sort_name = false;
     var sort_player = true;
     var sort_gametype = false;
-    //0 = off, 1 = asc, 2 = desc
 
     var sv_array = [];
     $.ajax("ms.php").done(function(data){
@@ -165,7 +164,7 @@ function getServerInfo(index){
         ))
         td1.append($("<p>").append(
             $("<b>").text("Map: "),
-            $("<span>").text(data['level']['title'])
+            $("<span>").text(data['level']['title'] + " (" + data['level']['name'] + ")")
         ))
 
         var h_players = $("<h2>").text("Players")
@@ -174,7 +173,8 @@ function getServerInfo(index){
             var p_noplayers = $("<p>").append($("<i>").text("No players are currently playing :("))
             data['mods'] ? td1.append(p_noplayers) : td2.append(p_noplayers)
         }else{
-            data['players']['list'].sort(function(a,b){return a['score'] < b['score']})
+            console.log(data['players']['list'])
+            data['players']['list'].sort(function(a,b){return Number(b['score']) - Number(a['score'])})
             var p_table = $("<table>").addClass("table")
             data['players']['list'].forEach(function(element,index){
                 var span = $("<span>")

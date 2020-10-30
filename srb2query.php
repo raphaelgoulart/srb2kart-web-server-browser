@@ -543,6 +543,7 @@ class SRB2Query
 
 		$t['level'] = [
 			'seconds' => $pk['leveltime'] / self::TICRATE,
+			'name'   => $pk['mapname'],
 			'title'   => self::Zonetitle($pk),
 			'md5sum'  => bin2hex($pk['mapmd5']),
 		];

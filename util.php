@@ -45,8 +45,9 @@ function copy_bool ( bool &$to, mixed $from ) : mixed
 
 function cstrsize (string $s, int $l = 0, int $n = NULL) : int
 {
-	if (( $len = strlen($s) - $l ) < 0)
+	if (( $len = strlen($s) - $l ) < 0){
 		return 0;
+	}
 	// We can't substr outside of length.
 	if (isset($n) && $n < $len)
 	{
@@ -54,8 +55,8 @@ function cstrsize (string $s, int $l = 0, int $n = NULL) : int
 		$l = 0;
 		$len = $n;
 	}
-	$n = strpos($s, "\0", $l) - $l;
-	return ( ($n === FALSE) ?  $len : $n + 1 );
+	$n = strpos($s, "\0", $l);
+	return ( ($n === FALSE) ?  $len : $n - $l + 1 );
 }
 
 function cstr (string $s, int $l = 0, int $n = NULL) : string
