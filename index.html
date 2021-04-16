@@ -139,7 +139,7 @@
 
 function getServerInfo(index){
     var server = sv_array[index]
-    $.get('api.php',{'ip':server[0],'port':server[1]}).done(function(data,status,xhr){
+    $.get('http://kart.raphaelgoul.art/api/server_browser',{'ip':server[0],'port':server[1]}).done(function(data,status,xhr){
         $("#name_"+index).html(data['servername'])
         $("#players_"+index).text(data['players']['count'] + " / " + data['players']['max'])
         $("#gametype_"+index).text(data['gametype'])
@@ -151,10 +151,25 @@ function getServerInfo(index){
         var td1 = $("<div>")
         var td2 = $("<div>")
         td1.append($("<h2>").text("Server info"))
-        if(server[2]) td1.append($("<p>").append(
-            $("<b>").text("Contact: "),
-            $("<span>").text(decodeURIComponent(server[2]))
-        ))
+        if(server[2]){
+            var contact = decodeURIComponent(server[2])
+            var contactAndMotd = contact.split('||')
+            var motd = ""
+            if (contactAndMotd.length > 1){
+                contact = contactAndMotd[0]
+                motd = contactAndMotd[1]
+            }
+            td1.append(jQuery("<p>").append(
+                jQuery("<b>").text("Contact: "),
+                jQuery("<span>").text(contact)
+            ))
+            if(motd){
+                td1.append(jQuery("<p>").append(
+                    jQuery("<b>").text("MOTD: "),
+                    jQuery("<i>").text(motd)
+                ))
+            }
+        }
         if(data['dedicated']) td1.append($("<p>").text("Dedicated server"))
         if(data['cheats']) td1.append($("<p>").text("Cheats are enabled"))
         if(data['password-protected']) td1.append($("<p>").text("Is password protected"))
@@ -251,7 +266,7 @@ function getServerFlag(index){
         var flagchar = data['country_code'].toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0)+127397));
         flag.attr('title',data['country_name']).text(flagchar)
     }).fail(function(xhr,status,error){
-        $.getJSON('flag.php?ip=' + ip).done(function(data,status,xhr){ // now it isn't anymore :D but might reach ratelimit faster
+        $.getJSON('http://kart.raphaelgoul.art/api/flag_proxy/' + ip).done(function(data,status,xhr){ // now it isn't anymore :D but might reach ratelimit faster
             var flagchar = data['country_code'].toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0)+127397));
             flag.attr('title',data['country_name']).text(flagchar)
         }).fail(function(xhr,status,error){
